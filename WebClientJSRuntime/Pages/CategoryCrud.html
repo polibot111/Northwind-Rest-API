@@ -1,0 +1,202 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <link href="../Content/bootstrap.css" rel="stylesheet" />
+    <script src="../Scripts/jquery-1.9.0.js"></script>
+    <script src="../Scripts/bootstrap.js"></script>
+
+    <style>
+        .genislik {
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-6">
+
+                ID => <input type="text" class="form-control genislik" id="txtID" placeholder="ID giriniz" />
+
+                Name => <input type="text" class="form-control genislik" id="txtName" placeholder="Kategori Ismi Giriniz" />
+
+                Description => <input type="text" class="form-control genislik" id="txtDescription" placeholder="Acıklama Giriniz" />
+
+                Search => <input type="text" class="form-control genislik" id="txtSearch" placeholder="Arama yapınız" />
+
+                <hr />
+                <input type="button" id="btnAll" class="btn btn-info" value="Kategorileri Getir" />
+                <input type="button" id="btnID" class="btn btn-primary" value="Kategori Getir" />
+
+                <hr />
+
+
+                <input type="button" id="btnAdd" class="btn btn-info" value="Kategori Ekle" />
+
+
+
+
+            </div>
+            <div class="col-sm-6">
+                <table id="tab1" class='table table-hover'>
+                    <tr>
+                        <th>Kategori ID</th>
+                        <th>Kategori Ismi</th>
+                        <th>Kategori Acıklaması</th>
+                        <th colspan="2" style="text-align:center;padding-right:40px">Islemler</th>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+
+        function ControlHeader() {
+            $("#tab1").find("tr:gt(0)").remove();
+        }
+
+
+        function BringDataList(dataList) {
+            ControlHeader();
+
+            $.each(dataList, function (key, data) {
+                $("#tab1").append("<tr><td>" + data.ID + " </td> <td>" + data.Name + " </td> <td>" + data.Description + " </td> <td><button class='btn btn-warning' id='guncelle" + data.ID + "' data-id='" + data.ID + "' value='update'> Güncelle </button> </td> <td> <button class='btn btn-danger' id='sil" + data.ID + "' data-id='" + data.ID + "' value='delete'>Sil </button> </td> </tr>");
+            })
+
+
+        }
+
+        function BringData(data) {
+            ControlHeader();
+
+            $("#tab1").append("<tr> <td>" + data.ID + " </td> <td>" + data.Name + " </td> <td>" + data.Description + " </td> <td><button class='btn btn-warning' id='guncelle" + data.ID + "' data-id='" + data.ID + "' value='update'> Güncelle </button> </td> <td> <button class='btn btn-danger' id='sil" + data.ID + "' data-id='" + data.ID + "' value='delete'> Sil </button> </td> </tr>");
+        }
+
+
+        function FetchData(data) {
+            $("#txtID").val(data.ID);
+            $("#txtName").val(data.Name);
+            $("#txtDescription").val(data.Description);
+        }
+
+
+        //https://localhost:44317/
+
+
+        $(function () {
+
+
+            //Kategorileri Getir
+
+
+            $("#btnAll").click(function () {
+                $.ajax({
+                    url: "https://localhost:44317/api/Category/ListCategories",
+                    type: "Get",
+                    success: function (data) {
+                        BringDataList(data);
+                    }
+                })
+            })
+
+            //Kategori Getir
+
+            $("#btnID").click(function () {
+
+                $.ajax({
+                    url: "https://localhost:44317/api/Category/BringCategory",
+                    data: { id: $("#txtID").val() },
+                    type: "Get",
+                    success: function (data) {
+                        BringData(data);
+                    }
+                })
+
+
+            })
+
+            //Kategori Ekle
+
+            $("#btnAdd").click(function () {
+                $.ajax({
+
+
+                    url: "https://localhost:44317/api/category/AddCategory",
+                    type: "Post",
+                    data: { CategoryName: $("#txtName").val(), Description: $("#txtDescription").val() },
+                    success: function (data) {
+                        BringDataList(data);
+                    }
+                })
+            })
+
+
+
+            //JS EventHandling
+
+            //Güncelle
+            $("#tab1").on("click", "[value=update]", function () {
+
+                $.ajax({
+                    type: "Put",
+                    url: "https://localhost:44317/api/category/UpdateCategory",
+                    data: { CategoryID: $(this).attr("data-id"), CategoryName: $("#txtName").val(), Description: $("#txtDescription").val() },
+                    success: function (data) {
+                        BringDataList(data);
+                    }
+                })
+
+
+            })
+
+            //Sil
+
+            $("#tab1").on("click", "[value=delete]", function () {
+                $.ajax({
+                    type: "Delete",
+                    url: "https://localhost:44317/api/Category/DeleteCategory/" + $(this).attr("data-id"),
+                    success: function (data) {
+                        BringDataList(data);
+                    }
+                })
+            })
+
+
+            //Search
+
+            $("#txtSearch").keyup(function () {
+                if ($(this).val().trim() == "")
+                {
+                    $("#btnAll").click(); //baska bir alanın eventine ulasıyoruz
+                    return;
+                }
+
+                $.ajax({
+                    url: "https://localhost:44317/api/Category/SearchCategory",
+                    type: "Get",
+                    data: { item: $(this).val() },
+                    success: function (data) {
+                        BringDataList(data);
+                    }
+                })
+
+            })
+
+
+        })
+
+
+
+
+
+    </script>
+
+
+
+
+</body>
+</html>
